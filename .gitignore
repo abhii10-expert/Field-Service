@@ -1,0 +1,9 @@
+# Salesforce DX
+.sfdx/
+.sf/
+
+# Local configuration
+.vscode/
+
+# Ignore OS specific files
+.DS_Store
