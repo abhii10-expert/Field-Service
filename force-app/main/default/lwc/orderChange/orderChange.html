@@ -1,0 +1,64 @@
+<template>
+    <lightning-card title="Order Change" icon-name="custom:custom83">
+        <div class="slds-m-around_medium">
+
+            <!-- Your existing Order Change UI goes here -->
+            <p>Order Change Component</p>
+
+            <hr class="slds-m-vertical_medium" />
+
+            <!-- Agentforce Summary Section -->
+            <div class="slds-m-top_medium">
+                <h3 class="slds-text-heading_small slds-m-bottom_small">
+                    AI Record Summary
+                </h3>
+
+                <!-- Button — shown when no summary yet -->
+                <template if:false={summary}>
+                    <lightning-button
+                        label="Summarize with Agentforce"
+                        variant="brand"
+                        icon-name="utility:einstein"
+                        onclick={handleSummarize}
+                        disabled={isLoading}>
+                    </lightning-button>
+                </template>
+
+                <!-- Spinner while loading -->
+                <template if:true={isLoading}>
+                    <div class="slds-align_absolute-center slds-p-around_medium">
+                        <lightning-spinner
+                            alternative-text="Asking Agentforce..."
+                            size="medium">
+                        </lightning-spinner>
+                        <p class="slds-m-top_small slds-text-color_weak">
+                            Agentforce is analyzing this record...
+                        </p>
+                    </div>
+                </template>
+
+                <!-- Summary result -->
+                <template if:true={summary}>
+                    <div class="slds-box slds-theme_shade slds-m-bottom_small">
+                        <lightning-formatted-text value={summary}>
+                        </lightning-formatted-text>
+                    </div>
+                    <lightning-button
+                        label="Regenerate"
+                        variant="neutral"
+                        icon-name="utility:refresh"
+                        onclick={handleSummarize}>
+                    </lightning-button>
+                </template>
+
+                <!-- Error state -->
+                <template if:true={error}>
+                    <div class="slds-notify slds-notify_alert slds-alert_error slds-m-top_small">
+                        <p>{error}</p>
+                    </div>
+                </template>
+            </div>
+
+        </div>
+    </lightning-card>
+</template>

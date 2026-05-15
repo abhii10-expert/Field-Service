@@ -2,7 +2,10 @@
     "compilerOptions": {
         "experimentalDecorators": true,
         "baseUrl": ".",
+<<<<<<< HEAD
         "target": "es2020",
+=======
+>>>>>>> 388cb1d3a00baffa7b80806673b6e3014dd178c7
         "paths": {
             "c/*": [
                 "*"
