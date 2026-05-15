@@ -1,0 +1,323 @@
+66.0 APEX_CODE,FINEST;APEX_PROFILING,INFO;CALLOUT,INFO;DATA_ACCESS,INFO;DB,INFO;NBA,INFO;SYSTEM,DEBUG;VALIDATION,INFO;VISUALFORCE,INFO;WAVE,INFO;WORKFLOW,INFO
+Execute Anonymous: // 1. Force YOUR location to 0,0
+Execute Anonymous: ServiceResource mySr = [SELECT Id FROM ServiceResource WHERE RelatedRecordId = :UserInfo.getUserId() LIMIT 1];
+Execute Anonymous: mySr.LastKnownLatitude = 0.0;
+Execute Anonymous: mySr.LastKnownLongitude = 0.0;
+Execute Anonymous: update mySr;
+Execute Anonymous: 
+Execute Anonymous: // 2. Force SARAH'S location to 0.01, 0.01 (Very close)
+Execute Anonymous: ServiceResource sarah = [SELECT Id, LocationId FROM ServiceResource WHERE Name = 'Tech Sarah' LIMIT 1];
+Execute Anonymous: sarah.LastKnownLatitude = 0.01;
+Execute Anonymous: sarah.LastKnownLongitude = 0.01;
+Execute Anonymous: update sarah;
+Execute Anonymous: 
+Execute Anonymous: // 3. Ensure Sarah has stock
+Execute Anonymous: Id modemId = [SELECT Id FROM Product2 WHERE Name = 'Modem' LIMIT 1].Id;
+Execute Anonymous: ProductItem pi = [SELECT Id FROM ProductItem WHERE LocationId = :sarah.LocationId AND Product2Id = :modemId LIMIT 1];
+Execute Anonymous: pi.QuantityOnHand = 15;
+Execute Anonymous: update pi;
+Execute Anonymous: 
+Execute Anonymous: System.debug('SYNC COMPLETE: You and Sarah are now in the same zone. Try the search!');
+06:59:13.1 (1974990)|USER_INFO|[EXTERNAL]|005dL00001kiJYb|abhijithshaibinu001.b869139f1496@agentforce.com|(GMT-07:00) Pacific Daylight Time (America/Los_Angeles)|GMT-07:00
+06:59:13.1 (2017352)|EXECUTION_STARTED
+06:59:13.1 (2064894)|CODE_UNIT_STARTED|[EXTERNAL]|execute_anonymous_apex
+06:59:13.1 (2568559)|VARIABLE_SCOPE_BEGIN|[14]|modemId|Id|false|false
+06:59:13.1 (2754140)|VARIABLE_SCOPE_BEGIN|[2]|mySr|ServiceResource|true|false
+06:59:13.1 (2838333)|VARIABLE_SCOPE_BEGIN|[15]|pi|ProductItem|true|false
+06:59:13.1 (2846053)|VARIABLE_SCOPE_BEGIN|[8]|sarah|ServiceResource|true|false
+06:59:13.1 (3243925)|HEAP_ALLOCATE|[95]|Bytes:3
+06:59:13.1 (3465436)|HEAP_ALLOCATE|[100]|Bytes:152
+06:59:13.1 (3505868)|HEAP_ALLOCATE|[417]|Bytes:408
+06:59:13.1 (3524799)|HEAP_ALLOCATE|[430]|Bytes:408
+06:59:13.1 (3564601)|HEAP_ALLOCATE|[317]|Bytes:6
+06:59:13.1 (3610003)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:32
+06:59:13.1 (4044034)|STATEMENT_EXECUTE|[1]
+06:59:13.1 (4051386)|STATEMENT_EXECUTE|[2]
+06:59:13.1 (4060016)|HEAP_ALLOCATE|[2]|Bytes:71
+06:59:13.1 (4177232)|HEAP_ALLOCATE|[2]|Bytes:4
+06:59:13.1 (4210714)|HEAP_ALLOCATE|[2]|Bytes:7
+06:59:13.1 (4326288)|HEAP_ALLOCATE|[68]|Bytes:5
+06:59:13.1 (4422114)|HEAP_ALLOCATE|[74]|Bytes:5
+06:59:13.1 (4434075)|HEAP_ALLOCATE|[82]|Bytes:7
+06:59:13.1 (4487718)|SYSTEM_MODE_ENTER|false
+06:59:13.1 (4545711)|HEAP_ALLOCATE|[2]|Bytes:5
+06:59:13.1 (4740721)|HEAP_ALLOCATE|[2]|Bytes:105
+06:59:13.1 (4770142)|SYSTEM_METHOD_ENTRY|[1]|UserInfo.UserInfo()
+06:59:13.1 (4775852)|STATEMENT_EXECUTE|[1]
+06:59:13.1 (4800284)|SYSTEM_METHOD_EXIT|[1]|UserInfo
+06:59:13.1 (4836274)|METHOD_ENTRY|[2]||System.UserInfo.getUserId()
+06:59:13.1 (7946213)|METHOD_EXIT|[2]||System.UserInfo.getUserId()
+06:59:13.1 (7978605)|SYSTEM_MODE_EXIT|false
+06:59:13.1 (8859490)|SOQL_EXECUTE_BEGIN|[2]|Aggregations:0|SELECT Id FROM ServiceResource WHERE RelatedRecordId = :tmpVar1 LIMIT 1
+06:59:13.1 (20975785)|SOQL_EXECUTE_END|[2]|Rows:1
+06:59:13.1 (21036198)|HEAP_ALLOCATE|[2]|Bytes:8
+06:59:13.1 (21080130)|HEAP_ALLOCATE|[2]|Bytes:29
+06:59:13.1 (21313452)|HEAP_ALLOCATE|[2]|Bytes:8
+06:59:13.1 (21346073)|HEAP_ALLOCATE|[2]|Bytes:41
+06:59:13.1 (21488560)|HEAP_ALLOCATE|[2]|Bytes:8
+06:59:13.1 (21761134)|VARIABLE_ASSIGNMENT|[2]|mySr|{"Id":"0HndL000000MjRVSA0"}|0x5837ee7a
+06:59:13.1 (21772225)|STATEMENT_EXECUTE|[3]
+06:59:13.1 (21776676)|HEAP_ALLOCATE|[3]|Bytes:3
+06:59:13.1 (21940404)|HEAP_ALLOCATE|[3]|Bytes:28
+06:59:13.1 (22323653)|HEAP_ALLOCATE|[3]|Bytes:-4
+06:59:13.1 (22391617)|VARIABLE_ASSIGNMENT|[3]|this.LastKnownLatitude|0.0|0x5837ee7a
+06:59:13.1 (22398097)|STATEMENT_EXECUTE|[4]
+06:59:13.1 (22409538)|HEAP_ALLOCATE|[4]|Bytes:28
+06:59:13.1 (22451470)|HEAP_ALLOCATE|[4]|Bytes:-4
+06:59:13.1 (22466391)|VARIABLE_ASSIGNMENT|[4]|this.LastKnownLongitude|0.0|0x5837ee7a
+06:59:13.1 (22471671)|STATEMENT_EXECUTE|[5]
+06:59:13.1 (22568246)|HEAP_ALLOCATE|[5]|Bytes:8
+06:59:13.1 (22730354)|DML_BEGIN|[5]|Op:Update|Type:ServiceResource|Rows:1
+06:59:13.1 (22818489)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.135 (135406234)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.135 (135596494)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.135 (135938521)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:13.135 (135956611)|VARIABLE_SCOPE_BEGIN|[1]|this|FSL.TR008_ServiceResource_BeforeUpdate|true|false
+06:59:13.135 (136210295)|VARIABLE_ASSIGNMENT|[1]|this|{}|0x23cd876d
+06:59:13.412 (412873010)|CUMULATIVE_LIMIT_USAGE
+06:59:13.412 (412873010)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 1 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 1 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.412 (412873010)|LIMIT_USAGE_FOR_NS|FSL|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.412 (412873010)|CUMULATIVE_LIMIT_USAGE_END
+
+06:59:13.1 (445210622)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:ServiceResource:0HndL000000MjRV
+06:59:13.1 (445241693)|VALIDATION_RULE|03ddL00000APzpE|Resource_travel
+06:59:13.1 (445618552)|VALIDATION_FORMULA|FSL__Travel_Speed__c <= 0|FSL__Travel_Speed__c=null
+06:59:13.1 (445635953)|VALIDATION_PASS
+06:59:13.1 (445640513)|VALIDATION_RULE|03ddL00000APzpD|Capacity_Resource_of_Type_Crew
+06:59:13.1 (446004242)|VALIDATION_FORMULA|AND(IsCapacityBased,ISPICKVAL(ResourceType, 'C'))|IsCapacityBased=0 , ResourceType=T
+06:59:13.1 (446016552)|VALIDATION_PASS
+06:59:13.1 (446035364)|CODE_UNIT_FINISHED|Validation:ServiceResource:0HndL000000MjRV
+06:59:13.466 (466473601)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.466 (466592636)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.466 (466760645)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.466 (466773626)|VARIABLE_SCOPE_BEGIN|[1]|this|FSL.TR008_ServiceResource_AfterUpdate|true|false
+06:59:13.466 (466878191)|VARIABLE_ASSIGNMENT|[1]|this|{}|0x67dcaea8
+06:59:13.505 (505218588)|CUMULATIVE_LIMIT_USAGE
+06:59:13.505 (505218588)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 1 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 1 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 1 out of 10000
+  Maximum CPU time: 138 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.505 (505218588)|LIMIT_USAGE_FOR_NS|FSL|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.505 (505218588)|CUMULATIVE_LIMIT_USAGE_END
+
+06:59:13.1 (514332740)|DML_END|[5]
+06:59:13.1 (514974433)|STATEMENT_EXECUTE|[8]
+06:59:13.1 (514987533)|HEAP_ALLOCATE|[8]|Bytes:76
+06:59:13.1 (515020556)|HEAP_ALLOCATE|[8]|Bytes:4
+06:59:13.1 (515728912)|SOQL_EXECUTE_BEGIN|[8]|Aggregations:0|SELECT Id, LocationId FROM ServiceResource WHERE Name = 'Tech Sarah' LIMIT 1
+06:59:13.1 (525222373)|SOQL_EXECUTE_END|[8]|Rows:1
+06:59:13.1 (525258305)|HEAP_ALLOCATE|[8]|Bytes:8
+06:59:13.1 (525281047)|HEAP_ALLOCATE|[8]|Bytes:61
+06:59:13.1 (525335409)|HEAP_ALLOCATE|[8]|Bytes:8
+06:59:13.1 (525378852)|HEAP_ALLOCATE|[8]|Bytes:12
+06:59:13.1 (525541629)|VARIABLE_ASSIGNMENT|[8]|sarah|{"LocationId":"131dL000000OL1hQAG","Id":"0HndL000000O4qTSAS"}|0x5a9b9118
+06:59:13.1 (525550440)|STATEMENT_EXECUTE|[9]
+06:59:13.1 (525582391)|HEAP_ALLOCATE|[9]|Bytes:28
+06:59:13.1 (525664506)|HEAP_ALLOCATE|[9]|Bytes:-4
+06:59:13.1 (525689316)|VARIABLE_ASSIGNMENT|[9]|this.LastKnownLatitude|0.01|0x5a9b9118
+06:59:13.1 (525694668)|STATEMENT_EXECUTE|[10]
+06:59:13.1 (525702088)|HEAP_ALLOCATE|[10]|Bytes:28
+06:59:13.1 (525732589)|HEAP_ALLOCATE|[10]|Bytes:-4
+06:59:13.1 (525743839)|VARIABLE_ASSIGNMENT|[10]|this.LastKnownLongitude|0.01|0x5a9b9118
+06:59:13.1 (525749850)|STATEMENT_EXECUTE|[11]
+06:59:13.1 (525788932)|HEAP_ALLOCATE|[11]|Bytes:8
+06:59:13.1 (525801153)|DML_BEGIN|[11]|Op:Update|Type:ServiceResource|Rows:1
+06:59:13.1 (525831763)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.540 (540585303)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.540 (540664167)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.540 (540744832)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:13.540 (540755432)|VARIABLE_SCOPE_BEGIN|[1]|this|FSL.TR008_ServiceResource_BeforeUpdate|true|false
+06:59:13.540 (540841485)|VARIABLE_ASSIGNMENT|[1]|this|{}|0x5f80a041
+06:59:13.543 (543595016)|CUMULATIVE_LIMIT_USAGE
+06:59:13.543 (543595016)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 2 out of 100
+  Number of query rows: 2 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 2 out of 10000
+  Maximum CPU time: 138 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.543 (543595016)|LIMIT_USAGE_FOR_NS|FSL|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.543 (543595016)|CUMULATIVE_LIMIT_USAGE_END
+
+06:59:13.1 (563552009)|CODE_UNIT_STARTED|[EXTERNAL]|Validation:ServiceResource:0HndL000000O4qT
+06:59:13.1 (563573630)|VALIDATION_RULE|03ddL00000APzpE|Resource_travel
+06:59:13.1 (563712427)|VALIDATION_FORMULA|FSL__Travel_Speed__c <= 0|FSL__Travel_Speed__c=null
+06:59:13.1 (563719858)|VALIDATION_PASS
+06:59:13.1 (563722428)|VALIDATION_RULE|03ddL00000APzpD|Capacity_Resource_of_Type_Crew
+06:59:13.1 (563890286)|VALIDATION_FORMULA|AND(IsCapacityBased,ISPICKVAL(ResourceType, 'C'))|IsCapacityBased=0 , ResourceType=T
+06:59:13.1 (563899807)|VALIDATION_PASS
+06:59:13.1 (563906647)|CODE_UNIT_FINISHED|Validation:ServiceResource:0HndL000000O4qT
+06:59:13.575 (575173819)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.575 (575273124)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.575 (575376199)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:13.575 (575387759)|VARIABLE_SCOPE_BEGIN|[1]|this|FSL.TR008_ServiceResource_AfterUpdate|true|false
+06:59:13.575 (575477004)|VARIABLE_ASSIGNMENT|[1]|this|{}|0x66cf610a
+06:59:13.579 (579002244)|CUMULATIVE_LIMIT_USAGE
+06:59:13.579 (579002244)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 2 out of 100
+  Number of query rows: 2 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 2 out of 10000
+  Maximum CPU time: 138 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.579 (579002244)|LIMIT_USAGE_FOR_NS|FSL|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.579 (579002244)|CUMULATIVE_LIMIT_USAGE_END
+
+06:59:13.1 (581879249)|DML_END|[11]
+06:59:13.1 (582475759)|STATEMENT_EXECUTE|[14]
+06:59:13.1 (582483271)|HEAP_ALLOCATE|[14]|Bytes:52
+06:59:13.1 (582505072)|HEAP_ALLOCATE|[14]|Bytes:4
+06:59:13.1 (582898501)|SOQL_EXECUTE_BEGIN|[14]|Aggregations:0|SELECT Id FROM Product2 WHERE Name = 'Modem' LIMIT 1
+06:59:13.1 (591866036)|SOQL_EXECUTE_END|[14]|Rows:1
+06:59:13.1 (591900589)|HEAP_ALLOCATE|[14]|Bytes:8
+06:59:13.1 (591930620)|HEAP_ALLOCATE|[14]|Bytes:29
+06:59:13.1 (592044976)|HEAP_ALLOCATE|[14]|Bytes:8
+06:59:13.1 (592067947)|HEAP_ALLOCATE|[14]|Bytes:34
+06:59:13.1 (592204324)|HEAP_ALLOCATE|[14]|Bytes:8
+06:59:13.1 (592412115)|VARIABLE_ASSIGNMENT|[14]|modemId|"01tdL00000chKwrQAE"
+06:59:13.1 (592420744)|STATEMENT_EXECUTE|[15]
+06:59:13.1 (592425224)|HEAP_ALLOCATE|[15]|Bytes:90
+06:59:13.1 (592441756)|HEAP_ALLOCATE|[15]|Bytes:4
+06:59:13.1 (592496639)|HEAP_ALLOCATE|[15]|Bytes:7
+06:59:13.1 (593167413)|SOQL_EXECUTE_BEGIN|[15]|Aggregations:0|SELECT Id FROM ProductItem WHERE (LocationId = :tmpVar1 AND Product2Id = :tmpVar2) LIMIT 1
+06:59:13.1 (601738808)|SOQL_EXECUTE_END|[15]|Rows:0
+06:59:13.1 (601778019)|HEAP_ALLOCATE|[15]|Bytes:4
+06:59:13.1 (601795411)|HEAP_ALLOCATE|[15]|Bytes:0
+06:59:13.1 (601878464)|HEAP_ALLOCATE|[15]|Bytes:4
+06:59:13.1 (601900076)|HEAP_ALLOCATE|[15]|Bytes:37
+06:59:13.1 (602070634)|HEAP_ALLOCATE|[15]|Bytes:46
+06:59:13.1 (602227353)|FATAL_ERROR|System.QueryException: List has no rows for assignment to SObject
+
+AnonymousBlock: line 15, column 1
+06:59:13.602 (602271924)|CUMULATIVE_LIMIT_USAGE
+06:59:13.602 (602271924)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 4 out of 100
+  Number of query rows: 3 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 2 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 2 out of 10000
+  Maximum CPU time: 138 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.602 (602271924)|LIMIT_USAGE_FOR_NS|FSL|
+  Number of SOQL queries: 0 out of 100
+  Number of query rows: 0 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:13.602 (602271924)|CUMULATIVE_LIMIT_USAGE_END
+
+06:59:13.1 (602325348)|CODE_UNIT_FINISHED|execute_anonymous_apex
+06:59:13.1 (602339028)|EXECUTION_FINISHED

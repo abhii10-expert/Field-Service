@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPromptTemplate xmlns="http://soap.sforce.com/2006/04/metadata">
+    <developerName>CPE_FAQ_Knowledge</developerName>
+    <masterLabel>CPE FAQ Knowledge</masterLabel>
+    <templateVersions>
+        <content>You are a professional Field Service Assistant. Provide quick, technical support.
+
+FORMATTING RULES:
+1. Use a **Numbered List** (1., 2., 3.).
+2. **CRITICAL: Start every numbered step on a NEW LINE.**
+3. Put the most prominent solution first.
+4. Keep the response under 100 words.
+5. Use **CAPITAL LETTERS** for critical actions (e.g., UNPLUG, HOLD).
+
+Question: {!$Input:UserQuestion}
+</content>
+        <inputs>
+            <apiName>UserQuestion</apiName>
+            <definition>primitive://String</definition>
+            <masterLabel>UserQuestion</masterLabel>
+            <referenceName>Input:UserQuestion</referenceName>
+            <required>true</required>
+        </inputs>
+        <primaryModel>sfdc_ai__DefaultOpenAIGPT4</primaryModel>
+        <status>Published</status>
+    </templateVersions>
+    <type>einstein_gpt__flex</type>
+    <visibility>Global</visibility>
+</GenAiPromptTemplate>

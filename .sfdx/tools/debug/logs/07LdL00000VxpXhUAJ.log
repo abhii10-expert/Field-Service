@@ -1,0 +1,435 @@
+66.0 APEX_CODE,FINEST;APEX_PROFILING,INFO;CALLOUT,INFO;DATA_ACCESS,INFO;DB,INFO;NBA,INFO;SYSTEM,DEBUG;VALIDATION,INFO;VISUALFORCE,INFO;WAVE,INFO;WORKFLOW,INFO
+Execute Anonymous: Map<String, Product2> productsByCode = new Map<String, Product2>();
+Execute Anonymous: 
+Execute Anonymous: for (Product2 p : [
+Execute Anonymous:     SELECT Id, Name, ProductCode, IsActive
+Execute Anonymous:     FROM Product2
+Execute Anonymous:     WHERE ProductCode IN ('REC-TV-01', 'WIFI-AP-02')
+Execute Anonymous: ]) {
+Execute Anonymous:     productsByCode.put(p.ProductCode, p);
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: List<Product2> productsToInsert = new List<Product2>();
+Execute Anonymous: 
+Execute Anonymous: if (!productsByCode.containsKey('REC-TV-01')) {
+Execute Anonymous:     productsToInsert.add(new Product2(
+Execute Anonymous:         Name = 'TV Receiver',
+Execute Anonymous:         ProductCode = 'REC-TV-01',
+Execute Anonymous:         IsActive = true
+Execute Anonymous:     ));
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: if (!productsByCode.containsKey('WIFI-AP-02')) {
+Execute Anonymous:     productsToInsert.add(new Product2(
+Execute Anonymous:         Name = 'Wi-Fi Access Point',
+Execute Anonymous:         ProductCode = 'WIFI-AP-02',
+Execute Anonymous:         IsActive = true
+Execute Anonymous:     ));
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: if (!productsToInsert.isEmpty()) {
+Execute Anonymous:     insert productsToInsert;
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: productsByCode.clear();
+Execute Anonymous: for (Product2 p : [
+Execute Anonymous:     SELECT Id, Name, ProductCode, IsActive
+Execute Anonymous:     FROM Product2
+Execute Anonymous:     WHERE ProductCode IN ('REC-TV-01', 'WIFI-AP-02')
+Execute Anonymous: ]) {
+Execute Anonymous:     productsByCode.put(p.ProductCode, p);
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: // IMPORTANT: use Schema.Location, not Location
+Execute Anonymous: Schema.Location vanLocation;
+Execute Anonymous: List<Schema.Location> existingLocations = [
+Execute Anonymous:     SELECT Id, Name, IsInventoryLocation
+Execute Anonymous:     FROM Location
+Execute Anonymous:     WHERE Name = 'Tech Van A'
+Execute Anonymous:     LIMIT 1
+Execute Anonymous: ];
+Execute Anonymous: 
+Execute Anonymous: if (existingLocations.isEmpty()) {
+Execute Anonymous:     vanLocation = new Schema.Location(
+Execute Anonymous:         Name = 'Tech Van A',
+Execute Anonymous:         IsInventoryLocation = true
+Execute Anonymous:     );
+Execute Anonymous:     insert vanLocation;
+Execute Anonymous: } else {
+Execute Anonymous:     vanLocation = existingLocations[0];
+Execute Anonymous:     if (vanLocation.IsInventoryLocation == false) {
+Execute Anonymous:         vanLocation.IsInventoryLocation = true;
+Execute Anonymous:         update vanLocation;
+Execute Anonymous:     }
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: vanLocation = [
+Execute Anonymous:     SELECT Id, Name, IsInventoryLocation
+Execute Anonymous:     FROM Location
+Execute Anonymous:     WHERE Id = :vanLocation.Id
+Execute Anonymous:     LIMIT 1
+Execute Anonymous: ];
+Execute Anonymous: 
+Execute Anonymous: Set<Id> productIds = new Set<Id>{
+Execute Anonymous:     productsByCode.get('REC-TV-01').Id,
+Execute Anonymous:     productsByCode.get('WIFI-AP-02').Id
+Execute Anonymous: };
+Execute Anonymous: 
+Execute Anonymous: Map<String, ProductItem> itemByProductCode = new Map<String, ProductItem>();
+Execute Anonymous: 
+Execute Anonymous: for (ProductItem pi : [
+Execute Anonymous:     SELECT Id, LocationId, Product2Id, Product2.ProductCode, QuantityOnHand
+Execute Anonymous:     FROM ProductItem
+Execute Anonymous:     WHERE LocationId = :vanLocation.Id
+Execute Anonymous:     AND Product2Id IN :productIds
+Execute Anonymous: ]) {
+Execute Anonymous:     itemByProductCode.put(pi.Product2.ProductCode, pi);
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: List<ProductItem> itemsToInsert = new List<ProductItem>();
+Execute Anonymous: List<ProductItem> itemsToUpdate = new List<ProductItem>();
+Execute Anonymous: 
+Execute Anonymous: if (!itemByProductCode.containsKey('REC-TV-01')) {
+Execute Anonymous:     itemsToInsert.add(new ProductItem(
+Execute Anonymous:         LocationId = vanLocation.Id,
+Execute Anonymous:         Product2Id = productsByCode.get('REC-TV-01').Id,
+Execute Anonymous:         QuantityOnHand = 5
+Execute Anonymous:     ));
+Execute Anonymous: } else {
+Execute Anonymous:     ProductItem existingTv = itemByProductCode.get('REC-TV-01');
+Execute Anonymous:     existingTv.QuantityOnHand = 5;
+Execute Anonymous:     itemsToUpdate.add(existingTv);
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: if (!itemByProductCode.containsKey('WIFI-AP-02')) {
+Execute Anonymous:     itemsToInsert.add(new ProductItem(
+Execute Anonymous:         LocationId = vanLocation.Id,
+Execute Anonymous:         Product2Id = productsByCode.get('WIFI-AP-02').Id,
+Execute Anonymous:         QuantityOnHand = 3
+Execute Anonymous:     ));
+Execute Anonymous: } else {
+Execute Anonymous:     ProductItem existingWifi = itemByProductCode.get('WIFI-AP-02');
+Execute Anonymous:     existingWifi.QuantityOnHand = 3;
+Execute Anonymous:     itemsToUpdate.add(existingWifi);
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: if (!itemsToInsert.isEmpty()) {
+Execute Anonymous:     insert itemsToInsert;
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: if (!itemsToUpdate.isEmpty()) {
+Execute Anonymous:     update itemsToUpdate;
+Execute Anonymous: }
+Execute Anonymous: 
+Execute Anonymous: System.debug('Created/updated inventory for location: ' + vanLocation.Name + ' (' + vanLocation.Id + ')');
+Execute Anonymous: 
+Execute Anonymous: for (ProductItem pi : [
+Execute Anonymous:     SELECT Id, Product2.Name, Product2.ProductCode, Location.Name, QuantityOnHand
+Execute Anonymous:     FROM ProductItem
+Execute Anonymous:     WHERE LocationId = :vanLocation.Id
+Execute Anonymous:     ORDER BY Product2.Name
+Execute Anonymous: ]) {
+Execute Anonymous:     System.debug(
+Execute Anonymous:         'ProductItem => Product=' + pi.Product2.Name +
+Execute Anonymous:         ', Code=' + pi.Product2.ProductCode +
+Execute Anonymous:         ', Location=' + pi.Location.Name +
+Execute Anonymous:         ', Qty=' + pi.QuantityOnHand
+Execute Anonymous:     );
+Execute Anonymous: }
+06:59:35.2 (2128211)|USER_INFO|[EXTERNAL]|005dL00001kiJYb|abhijithshaibinu001.b869139f1496@agentforce.com|(GMT-07:00) Pacific Daylight Time (America/Los_Angeles)|GMT-07:00
+06:59:35.2 (2171863)|EXECUTION_STARTED
+06:59:35.2 (2200172)|CODE_UNIT_STARTED|[EXTERNAL]|execute_anonymous_apex
+06:59:35.2 (2698885)|VARIABLE_SCOPE_BEGIN|[44]|existingLocations|List<Location>|true|false
+06:59:35.2 (2812896)|VARIABLE_SCOPE_BEGIN|[77]|itemByProductCode|Map<String,ProductItem>|true|false
+06:59:35.2 (2831728)|VARIABLE_SCOPE_BEGIN|[88]|itemsToInsert|List<ProductItem>|true|false
+06:59:35.2 (2838947)|VARIABLE_SCOPE_BEGIN|[89]|itemsToUpdate|List<ProductItem>|true|false
+06:59:35.2 (2857718)|VARIABLE_SCOPE_BEGIN|[72]|productIds|Set<Id>|true|false
+06:59:35.2 (2894449)|VARIABLE_SCOPE_BEGIN|[1]|productsByCode|Map<String,Product2>|true|false
+06:59:35.2 (2909240)|VARIABLE_SCOPE_BEGIN|[11]|productsToInsert|List<Product2>|true|false
+06:59:35.2 (2931459)|VARIABLE_SCOPE_BEGIN|[43]|vanLocation|Location|true|false
+06:59:35.2 (3214796)|HEAP_ALLOCATE|[95]|Bytes:3
+06:59:35.2 (3288277)|HEAP_ALLOCATE|[100]|Bytes:152
+06:59:35.2 (3312638)|HEAP_ALLOCATE|[417]|Bytes:408
+06:59:35.2 (3332939)|HEAP_ALLOCATE|[430]|Bytes:408
+06:59:35.2 (3368919)|HEAP_ALLOCATE|[317]|Bytes:6
+06:59:35.2 (3403461)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:239
+06:59:35.2 (4179579)|STATEMENT_EXECUTE|[1]
+06:59:35.2 (4183259)|STATEMENT_EXECUTE|[1]
+06:59:35.2 (4215280)|HEAP_ALLOCATE|[1]|Bytes:4
+06:59:35.2 (4440305)|VARIABLE_ASSIGNMENT|[1]|productsByCode|{}|0x3a7d9869
+06:59:35.2 (4450885)|HEAP_ALLOCATE|[3]|Bytes:101
+06:59:35.2 (4466216)|HEAP_ALLOCATE|[3]|Bytes:4
+06:59:35.2 (4501776)|HEAP_ALLOCATE|[68]|Bytes:5
+06:59:35.2 (4552578)|HEAP_ALLOCATE|[74]|Bytes:5
+06:59:35.2 (4566578)|HEAP_ALLOCATE|[82]|Bytes:7
+06:59:35.2 (5321555)|SOQL_EXECUTE_BEGIN|[3]|Aggregations:0|SELECT Id, Name, ProductCode, IsActive FROM Product2 WHERE ProductCode IN ('REC-TV-01', 'WIFI-AP-02')
+06:59:35.2 (36651601)|SOQL_EXECUTE_END|[3]|Rows:0
+06:59:35.2 (36981800)|HEAP_ALLOCATE|[3]|Bytes:54
+06:59:35.2 (36992549)|HEAP_ALLOCATE|[3]|Bytes:8
+06:59:35.2 (37068122)|SYSTEM_METHOD_ENTRY|[7]|QueryLocatorIterator.QueryLocatorIterator()
+06:59:35.2 (37076271)|STATEMENT_EXECUTE|[7]
+06:59:35.2 (37102262)|SYSTEM_METHOD_EXIT|[7]|QueryLocatorIterator
+06:59:35.2 (37113483)|HEAP_ALLOCATE|[3]|Bytes:28
+06:59:35.2 (37164783)|HEAP_ALLOCATE|[3]|Bytes:8
+06:59:35.2 (37172073)|HEAP_ALLOCATE|[3]|Bytes:8
+06:59:35.2 (37191685)|VARIABLE_SCOPE_BEGIN|[15]|this|Database.QueryLocatorIterator|true|false
+06:59:35.2 (37282866)|VARIABLE_ASSIGNMENT|[15]|this|{}|0x48ab262f
+06:59:35.2 (37293087)|VARIABLE_SCOPE_BEGIN|[15]|values|List<SObject>|true|false
+06:59:35.2 (37302066)|VARIABLE_ASSIGNMENT|[15]|values|null|
+06:59:35.2 (37305626)|VARIABLE_SCOPE_BEGIN|[15]|ql|Database.QueryLocator|true|false
+06:59:35.2 (37337677)|VARIABLE_ASSIGNMENT|[15]|ql|{"query":"SELECT Id, Name, Pro (81 more) ..."}|0x543b2215
+06:59:35.2 (37342048)|VARIABLE_SCOPE_BEGIN|[15]|totalNumRecords|Integer|false|false
+06:59:35.2 (37351677)|VARIABLE_ASSIGNMENT|[15]|totalNumRecords|0
+06:59:35.2 (37355317)|VARIABLE_SCOPE_BEGIN|[15]|queryMoreSize|Integer|false|false
+06:59:35.2 (37361788)|VARIABLE_ASSIGNMENT|[15]|queryMoreSize|50000
+06:59:35.2 (39853867)|HEAP_ALLOCATE|[3]|Bytes:28
+06:59:35.2 (39951069)|METHOD_ENTRY|[3]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (40006071)|METHOD_EXIT|[3]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (40102953)|VARIABLE_ASSIGNMENT|[3]|p|null|
+06:59:35.2 (40111373)|STATEMENT_EXECUTE|[3]
+06:59:35.2 (40146924)|STATEMENT_EXECUTE|[11]
+06:59:35.2 (40167764)|HEAP_ALLOCATE|[11]|Bytes:4
+06:59:35.2 (40317978)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:4
+06:59:35.2 (40348828)|VARIABLE_ASSIGNMENT|[11]|productsToInsert|[]|0x9cb2391
+06:59:35.2 (40362199)|HEAP_ALLOCATE|[13]|Bytes:9
+06:59:35.2 (40449961)|STATEMENT_EXECUTE|[13]
+06:59:35.2 (40452531)|STATEMENT_EXECUTE|[14]
+06:59:35.2 (40475181)|HEAP_ALLOCATE|[14]|Bytes:4
+06:59:35.2 (40610525)|HEAP_ALLOCATE|[15]|Bytes:11
+06:59:35.2 (40814569)|VARIABLE_ASSIGNMENT|[14]|this.Name|"TV Receiver"|0x4640a207
+06:59:35.2 (40976443)|VARIABLE_ASSIGNMENT|[14]|this.ProductCode|"REC-TV-01"|0x4640a207
+06:59:35.2 (41019424)|VARIABLE_ASSIGNMENT|[14]|this.IsActive|true|0x4640a207
+06:59:35.2 (41198008)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:4
+06:59:35.2 (41213559)|HEAP_ALLOCATE|[21]|Bytes:10
+06:59:35.2 (41242229)|STATEMENT_EXECUTE|[21]
+06:59:35.2 (41245009)|STATEMENT_EXECUTE|[22]
+06:59:35.2 (41262870)|HEAP_ALLOCATE|[22]|Bytes:4
+06:59:35.2 (41272280)|HEAP_ALLOCATE|[23]|Bytes:18
+06:59:35.2 (41300881)|VARIABLE_ASSIGNMENT|[22]|this.Name|"Wi-Fi Access Point"|0x32b969b1
+06:59:35.2 (41320421)|VARIABLE_ASSIGNMENT|[22]|this.ProductCode|"WIFI-AP-02"|0x32b969b1
+06:59:35.2 (41339421)|VARIABLE_ASSIGNMENT|[22]|this.IsActive|true|0x32b969b1
+06:59:35.2 (41372132)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:4
+06:59:35.2 (41398043)|STATEMENT_EXECUTE|[29]
+06:59:35.2 (41400943)|STATEMENT_EXECUTE|[30]
+06:59:35.2 (41475495)|DML_BEGIN|[30]|Op:Insert|Type:Product2|Rows:2
+06:59:35.2 (41527886)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:35.2 (89779329)|DML_END|[30]
+06:59:35.2 (90734082)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:35.2 (90769913)|STATEMENT_EXECUTE|[33]
+06:59:35.2 (90881745)|HEAP_ALLOCATE|[34]|Bytes:4
+06:59:35.2 (91485919)|SOQL_EXECUTE_BEGIN|[34]|Aggregations:0|SELECT Id, Name, ProductCode, IsActive FROM Product2 WHERE ProductCode IN ('REC-TV-01', 'WIFI-AP-02')
+06:59:35.2 (114199343)|SOQL_EXECUTE_END|[34]|Rows:2
+06:59:35.2 (114249264)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:35.2 (114419388)|HEAP_ALLOCATE|[34]|Bytes:28
+06:59:35.2 (114470439)|HEAP_ALLOCATE|[34]|Bytes:12
+06:59:35.2 (114483230)|HEAP_ALLOCATE|[34]|Bytes:8
+06:59:35.2 (114487160)|HEAP_ALLOCATE|[34]|Bytes:8
+06:59:35.2 (114494769)|VARIABLE_SCOPE_BEGIN|[15]|this|Database.QueryLocatorIterator|true|false
+06:59:35.2 (114540641)|VARIABLE_ASSIGNMENT|[15]|this|{}|0x671c7eb
+06:59:35.2 (114546241)|VARIABLE_SCOPE_BEGIN|[15]|values|List<SObject>|true|false
+06:59:35.2 (114726414)|VARIABLE_ASSIGNMENT|[15]|values|[{"Id":"01tdL00000cjw5BQAQ","ProductCode":"REC-TV-01","IsActive":true,"Name":"TV Receiver"},{"Id":"01tdL00000cjw5CQAQ","ProductCode":"WIFI-AP-02","IsActive":true,"Name":"Wi-Fi Access Point"}]|0x165cc4bb
+06:59:35.2 (114734225)|VARIABLE_SCOPE_BEGIN|[15]|ql|Database.QueryLocator|true|false
+06:59:35.2 (114753455)|VARIABLE_ASSIGNMENT|[15]|ql|{"query":"SELECT Id, Name, Pro (81 more) ..."}|0x22428d24
+06:59:35.2 (114758455)|VARIABLE_SCOPE_BEGIN|[15]|totalNumRecords|Integer|false|false
+06:59:35.2 (114767666)|VARIABLE_ASSIGNMENT|[15]|totalNumRecords|2
+06:59:35.2 (114771476)|VARIABLE_SCOPE_BEGIN|[15]|queryMoreSize|Integer|false|false
+06:59:35.2 (114778026)|VARIABLE_ASSIGNMENT|[15]|queryMoreSize|49998
+06:59:35.2 (114861188)|HEAP_ALLOCATE|[34]|Bytes:28
+06:59:35.2 (114887429)|METHOD_ENTRY|[34]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (114962121)|METHOD_EXIT|[34]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (114972201)|METHOD_ENTRY|[34]||Database.QueryLocatorIterator.next()
+06:59:35.2 (115094764)|METHOD_EXIT|[34]||Database.QueryLocatorIterator.next()
+06:59:35.2 (115105424)|VARIABLE_SCOPE_BEGIN|[34]|p|Product2|true|false
+06:59:35.2 (115151305)|VARIABLE_ASSIGNMENT|[34]|p|{"Id":"01tdL00000cjw5BQAQ","ProductCode":"REC-TV-01","IsActive":true,"Name":"TV Receiver"}|0x7b6af490
+06:59:35.2 (115158495)|STATEMENT_EXECUTE|[38]
+06:59:35.2 (115161255)|STATEMENT_EXECUTE|[39]
+06:59:35.2 (115260598)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:-4
+06:59:35.2 (115276978)|METHOD_ENTRY|[34]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (115302638)|METHOD_EXIT|[34]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (115308469)|METHOD_ENTRY|[34]||Database.QueryLocatorIterator.next()
+06:59:35.2 (115377600)|METHOD_EXIT|[34]||Database.QueryLocatorIterator.next()
+06:59:35.2 (115384380)|VARIABLE_SCOPE_BEGIN|[34]|p|Product2|true|false
+06:59:35.2 (115437602)|VARIABLE_ASSIGNMENT|[34]|p|{"Id":"01tdL00000cjw5CQAQ","ProductCode":"WIFI-AP-02","IsActive":true,"Name":"Wi-Fi Access Point"}|0x732c2a89
+06:59:35.2 (115443802)|STATEMENT_EXECUTE|[38]
+06:59:35.2 (115446082)|STATEMENT_EXECUTE|[39]
+06:59:35.2 (115462072)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:-4
+06:59:35.2 (115472162)|METHOD_ENTRY|[34]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (115488573)|METHOD_EXIT|[34]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (115497193)|VARIABLE_ASSIGNMENT|[34]|p|null|
+06:59:35.2 (115515273)|STATEMENT_EXECUTE|[43]
+06:59:35.2 (115533724)|VARIABLE_ASSIGNMENT|[43]|vanLocation|null|
+06:59:35.2 (115538094)|STATEMENT_EXECUTE|[44]
+06:59:35.2 (115542424)|HEAP_ALLOCATE|[44]|Bytes:84
+06:59:35.2 (115558794)|HEAP_ALLOCATE|[44]|Bytes:4
+06:59:35.2 (116169489)|SOQL_EXECUTE_BEGIN|[44]|Aggregations:0|SELECT Id, Name, IsInventoryLocation FROM Location WHERE Name = 'Tech Van A' LIMIT 1
+06:59:35.2 (137673533)|SOQL_EXECUTE_END|[44]|Rows:0
+06:59:35.2 (137737155)|HEAP_ALLOCATE|[44]|Bytes:4
+06:59:35.2 (137765025)|HEAP_ALLOCATE|[44]|Bytes:0
+06:59:35.2 (137825288)|HEAP_ALLOCATE|[44]|Bytes:4
+06:59:35.2 (137877859)|VARIABLE_ASSIGNMENT|[44]|existingLocations|[]|0xe4a15b8
+06:59:35.2 (138021542)|STATEMENT_EXECUTE|[51]
+06:59:35.2 (138027202)|STATEMENT_EXECUTE|[52]
+06:59:35.2 (138059162)|HEAP_ALLOCATE|[52]|Bytes:4
+06:59:35.2 (138150644)|HEAP_ALLOCATE|[53]|Bytes:10
+06:59:35.2 (138243138)|VARIABLE_ASSIGNMENT|[52]|this.Name|"Tech Van A"|0x3294481c
+06:59:35.2 (138273518)|VARIABLE_ASSIGNMENT|[52]|this.IsInventoryLocation|true|0x3294481c
+06:59:35.2 (138331969)|VARIABLE_ASSIGNMENT|[52]|vanLocation|{"Name":"Tech Van A","IsInventoryLocation":true}|0x3294481c
+06:59:35.2 (138338220)|STATEMENT_EXECUTE|[56]
+06:59:35.2 (138403431)|HEAP_ALLOCATE|[56]|Bytes:8
+06:59:35.2 (138422232)|DML_BEGIN|[56]|Op:Insert|Type:Location|Rows:1
+06:59:35.2 (138459353)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:8
+06:59:35.2 (278149952)|DML_END|[56]
+06:59:35.2 (279025933)|STATEMENT_EXECUTE|[65]
+06:59:35.2 (279039613)|HEAP_ALLOCATE|[65]|Bytes:78
+06:59:35.2 (279081673)|HEAP_ALLOCATE|[65]|Bytes:4
+06:59:35.2 (279132105)|HEAP_ALLOCATE|[65]|Bytes:7
+06:59:35.2 (280180120)|SOQL_EXECUTE_BEGIN|[65]|Aggregations:0|SELECT Id, Name, IsInventoryLocation FROM Location WHERE Id = :tmpVar1 LIMIT 1
+06:59:35.2 (296217366)|SOQL_EXECUTE_END|[65]|Rows:1
+06:59:35.2 (296258657)|HEAP_ALLOCATE|[65]|Bytes:8
+06:59:35.2 (296294228)|HEAP_ALLOCATE|[65]|Bytes:74
+06:59:35.2 (296356829)|HEAP_ALLOCATE|[65]|Bytes:8
+06:59:35.2 (296381260)|HEAP_ALLOCATE|[65]|Bytes:34
+06:59:35.2 (296460112)|HEAP_ALLOCATE|[65]|Bytes:16
+06:59:35.2 (296699387)|VARIABLE_ASSIGNMENT|[65]|vanLocation|{"IsInventoryLocation":true,"Id":"131dL000000OPBlQAO","Name":"Tech Van A"}|0x3472bc55
+06:59:35.2 (296745059)|STATEMENT_EXECUTE|[72]
+06:59:35.2 (296782020)|HEAP_ALLOCATE|[72]|Bytes:4
+06:59:35.2 (297120937)|VARIABLE_ASSIGNMENT|[72]|productIds|["01tdL00000cjw5BQAQ","01tdL00000cjw5CQAQ"]|0x7ed0712f
+06:59:35.2 (297129348)|STATEMENT_EXECUTE|[77]
+06:59:35.2 (297141839)|HEAP_ALLOCATE|[77]|Bytes:4
+06:59:35.2 (297196539)|VARIABLE_ASSIGNMENT|[77]|itemByProductCode|{}|0x23828a55
+06:59:35.2 (297205099)|HEAP_ALLOCATE|[79]|Bytes:144
+06:59:35.2 (297214560)|HEAP_ALLOCATE|[79]|Bytes:4
+06:59:35.2 (297237780)|HEAP_ALLOCATE|[79]|Bytes:7
+06:59:35.2 (298445229)|SOQL_EXECUTE_BEGIN|[79]|Aggregations:0|SELECT Id, LocationId, Product2Id, Product2.ProductCode, QuantityOnHand FROM ProductItem WHERE (LocationId = :tmpVar1 AND Product2Id = :tmpVar2)
+06:59:35.2 (323837324)|SOQL_EXECUTE_END|[79]|Rows:0
+06:59:35.2 (324025340)|HEAP_ALLOCATE|[79]|Bytes:28
+06:59:35.2 (324047080)|HEAP_ALLOCATE|[79]|Bytes:8
+06:59:35.2 (324051790)|HEAP_ALLOCATE|[79]|Bytes:8
+06:59:35.2 (324059640)|VARIABLE_SCOPE_BEGIN|[15]|this|Database.QueryLocatorIterator|true|false
+06:59:35.2 (324106342)|VARIABLE_ASSIGNMENT|[15]|this|{}|0x4e29584
+06:59:35.2 (324111862)|VARIABLE_SCOPE_BEGIN|[15]|values|List<SObject>|true|false
+06:59:35.2 (324120592)|VARIABLE_ASSIGNMENT|[15]|values|null|
+06:59:35.2 (324124051)|VARIABLE_SCOPE_BEGIN|[15]|ql|Database.QueryLocator|true|false
+06:59:35.2 (324143592)|VARIABLE_ASSIGNMENT|[15]|ql|{"query":"SELECT Id, LocationI (124 more) ..."}|0x6ca2af54
+06:59:35.2 (324148092)|VARIABLE_SCOPE_BEGIN|[15]|totalNumRecords|Integer|false|false
+06:59:35.2 (324156143)|VARIABLE_ASSIGNMENT|[15]|totalNumRecords|0
+06:59:35.2 (324159723)|VARIABLE_SCOPE_BEGIN|[15]|queryMoreSize|Integer|false|false
+06:59:35.2 (324167543)|VARIABLE_ASSIGNMENT|[15]|queryMoreSize|49997
+06:59:35.2 (324247475)|HEAP_ALLOCATE|[79]|Bytes:28
+06:59:35.2 (324275115)|METHOD_ENTRY|[79]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (324300455)|METHOD_EXIT|[79]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (324400198)|VARIABLE_ASSIGNMENT|[79]|pi|null|
+06:59:35.2 (324408699)|STATEMENT_EXECUTE|[79]
+06:59:35.2 (324426499)|STATEMENT_EXECUTE|[88]
+06:59:35.2 (324444339)|HEAP_ALLOCATE|[88]|Bytes:4
+06:59:35.2 (324529631)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:4
+06:59:35.2 (324551542)|VARIABLE_ASSIGNMENT|[88]|itemsToInsert|[]|0x3a70a28d
+06:59:35.2 (324556192)|STATEMENT_EXECUTE|[89]
+06:59:35.2 (324564192)|HEAP_ALLOCATE|[89]|Bytes:4
+06:59:35.2 (324583063)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:4
+06:59:35.2 (324590403)|VARIABLE_ASSIGNMENT|[89]|itemsToUpdate|[]|0x6bc211e8
+06:59:35.2 (324655914)|STATEMENT_EXECUTE|[91]
+06:59:35.2 (324658414)|STATEMENT_EXECUTE|[92]
+06:59:35.2 (324681555)|HEAP_ALLOCATE|[92]|Bytes:4
+06:59:35.2 (324938471)|VARIABLE_ASSIGNMENT|[92]|this.LocationId|"131dL000000OPBlQAO"|0x3d669189
+06:59:35.2 (325074484)|VARIABLE_ASSIGNMENT|[92]|this.Product2Id|"01tdL00000cjw5BQAQ"|0x3d669189
+06:59:35.2 (325165146)|HEAP_ALLOCATE|[92]|Bytes:28
+06:59:35.2 (325170686)|HEAP_ALLOCATE|[92]|Bytes:28
+06:59:35.2 (325218077)|VARIABLE_ASSIGNMENT|[92]|this.QuantityOnHand|5|0x3d669189
+06:59:35.2 (325275059)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:4
+06:59:35.2 (325309929)|STATEMENT_EXECUTE|[103]
+06:59:35.2 (325312329)|STATEMENT_EXECUTE|[104]
+06:59:35.2 (325328390)|HEAP_ALLOCATE|[104]|Bytes:4
+06:59:35.2 (325370131)|VARIABLE_ASSIGNMENT|[104]|this.LocationId|"131dL000000OPBlQAO"|0x31c7612b
+06:59:35.2 (325430092)|VARIABLE_ASSIGNMENT|[104]|this.Product2Id|"01tdL00000cjw5CQAQ"|0x31c7612b
+06:59:35.2 (325449993)|HEAP_ALLOCATE|[104]|Bytes:28
+06:59:35.2 (325454493)|HEAP_ALLOCATE|[104]|Bytes:28
+06:59:35.2 (325478533)|VARIABLE_ASSIGNMENT|[104]|this.QuantityOnHand|3|0x31c7612b
+06:59:35.2 (325516015)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:4
+06:59:35.2 (325542825)|STATEMENT_EXECUTE|[115]
+06:59:35.2 (325545635)|STATEMENT_EXECUTE|[116]
+06:59:35.2 (325600786)|DML_BEGIN|[116]|Op:Insert|Type:ProductItem|Rows:2
+06:59:35.2 (325642487)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:35.2 (501042627)|DML_END|[116]
+06:59:35.2 (501874905)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:35.2 (502017499)|STATEMENT_EXECUTE|[119]
+06:59:35.2 (502022908)|STATEMENT_EXECUTE|[123]
+06:59:35.2 (502030479)|HEAP_ALLOCATE|[123]|Bytes:40
+06:59:35.2 (502128942)|HEAP_ALLOCATE|[123]|Bytes:2
+06:59:35.2 (502231504)|HEAP_ALLOCATE|[123]|Bytes:18
+06:59:35.2 (502245644)|HEAP_ALLOCATE|[123]|Bytes:1
+06:59:35.2 (502267045)|HEAP_ALLOCATE|[123]|Bytes:71
+06:59:35.2 (502316246)|USER_DEBUG|[123]|DEBUG|Created/updated inventory for location: Tech Van A (131dL000000OPBlQAO)
+06:59:35.2 (502329166)|HEAP_ALLOCATE|[125]|Bytes:161
+06:59:35.2 (502351527)|HEAP_ALLOCATE|[125]|Bytes:4
+06:59:35.2 (503393121)|SOQL_EXECUTE_BEGIN|[125]|Aggregations:0|SELECT Id, Product2.Name, Product2.ProductCode, Location.Name, QuantityOnHand FROM ProductItem WHERE LocationId = :tmpVar1 ORDER BY Product2.Name ASC NULLS FIRST
+06:59:35.2 (544456036)|SOQL_EXECUTE_END|[125]|Rows:2
+06:59:35.2 (544492186)|HEAP_ALLOCATE|[EXTERNAL]|Bytes:12
+06:59:35.2 (544651640)|HEAP_ALLOCATE|[125]|Bytes:28
+06:59:35.2 (544694341)|HEAP_ALLOCATE|[125]|Bytes:12
+06:59:35.2 (544707311)|HEAP_ALLOCATE|[125]|Bytes:8
+06:59:35.2 (544711271)|HEAP_ALLOCATE|[125]|Bytes:8
+06:59:35.2 (544718852)|VARIABLE_SCOPE_BEGIN|[15]|this|Database.QueryLocatorIterator|true|false
+06:59:35.2 (544763623)|VARIABLE_ASSIGNMENT|[15]|this|{}|0xae06bd9
+06:59:35.2 (544769053)|VARIABLE_SCOPE_BEGIN|[15]|values|List<SObject>|true|false
+06:59:35.2 (545580192)|VARIABLE_ASSIGNMENT|[15]|values|[{"LocationId":"131dL000000OPBlQAO","Id":"0CodL00000DyKM9SAN","Product2Id":"01tdL00000cjw5BQAQ","QuantityOnHand":5.00,"Product2":{"ProductCode":"REC-TV-01","Id":"01tdL00000cjw5BQAQ","Name":"TV Receiver"},"Location":{"Id":"131dL000000OPBlQAO","Name":"Tech Van A"}},{"LocationId":"131dL000000OPBlQAO","Id":"0CodL00000DyKMASA3","Product2Id":"01tdL00000cjw5CQAQ","QuantityOnHand":3.00,"Product2":{"ProductCode":"WIFI-AP-02","Id":"01tdL00000cjw5CQAQ","Name":"Wi-Fi Access Point"},"Location":{"Id":"131dL000000OPBlQAO","Name":"Tech Van A"}}]|0x6d38201a
+06:59:35.2 (545597862)|VARIABLE_SCOPE_BEGIN|[15]|ql|Database.QueryLocator|true|false
+06:59:35.2 (545619503)|VARIABLE_ASSIGNMENT|[15]|ql|{"query":"SELECT Id, Product2. (141 more) ..."}|0x947f58d
+06:59:35.2 (545623973)|VARIABLE_SCOPE_BEGIN|[15]|totalNumRecords|Integer|false|false
+06:59:35.2 (545632883)|VARIABLE_ASSIGNMENT|[15]|totalNumRecords|2
+06:59:35.2 (545636344)|VARIABLE_SCOPE_BEGIN|[15]|queryMoreSize|Integer|false|false
+06:59:35.2 (545642464)|VARIABLE_ASSIGNMENT|[15]|queryMoreSize|49995
+06:59:35.2 (545764126)|HEAP_ALLOCATE|[125]|Bytes:28
+06:59:35.2 (545795287)|METHOD_ENTRY|[125]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (545840408)|METHOD_EXIT|[125]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (545849018)|METHOD_ENTRY|[125]||Database.QueryLocatorIterator.next()
+06:59:35.2 (545977072)|METHOD_EXIT|[125]||Database.QueryLocatorIterator.next()
+06:59:35.2 (546074683)|VARIABLE_SCOPE_BEGIN|[125]|pi|ProductItem|true|false
+06:59:35.2 (546193967)|VARIABLE_ASSIGNMENT|[125]|pi|{"LocationId":"131dL000000OPBlQAO","Id":"0CodL00000DyKM9SAN","Product2Id":"01tdL00000cjw5BQAQ","QuantityOnHand":5.00,"Product2":{"ProductCode":"REC-TV-01","Id":"01tdL00000cjw5BQAQ","Name":"TV Receiver"},"Location":{"Id":"131dL000000OPBlQAO","Name":"Tech Van A"}}|0x229634fa
+06:59:35.2 (546206546)|STATEMENT_EXECUTE|[130]
+06:59:35.2 (546240387)|STATEMENT_EXECUTE|[131]
+06:59:35.2 (546246518)|HEAP_ALLOCATE|[132]|Bytes:23
+06:59:35.2 (546339899)|HEAP_ALLOCATE|[133]|Bytes:7
+06:59:35.2 (546350699)|HEAP_ALLOCATE|[134]|Bytes:11
+06:59:35.2 (546414922)|HEAP_ALLOCATE|[132]|Bytes:71
+06:59:35.2 (546423031)|HEAP_ALLOCATE|[135]|Bytes:6
+06:59:35.2 (546507844)|HEAP_ALLOCATE|[135]|Bytes:4
+06:59:35.2 (546531775)|HEAP_ALLOCATE|[132]|Bytes:10
+06:59:35.2 (546537634)|HEAP_ALLOCATE|[132]|Bytes:81
+06:59:35.2 (546580985)|USER_DEBUG|[131]|DEBUG|ProductItem => Product=TV Receiver, Code=REC-TV-01, Location=Tech Van A, Qty=5.00
+06:59:35.2 (546598195)|METHOD_ENTRY|[125]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (546637676)|METHOD_EXIT|[125]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (546644396)|METHOD_ENTRY|[125]||Database.QueryLocatorIterator.next()
+06:59:35.2 (546763410)|METHOD_EXIT|[125]||Database.QueryLocatorIterator.next()
+06:59:35.2 (546772970)|VARIABLE_SCOPE_BEGIN|[125]|pi|ProductItem|true|false
+06:59:35.2 (546870041)|VARIABLE_ASSIGNMENT|[125]|pi|{"LocationId":"131dL000000OPBlQAO","Id":"0CodL00000DyKMASA3","Product2Id":"01tdL00000cjw5CQAQ","QuantityOnHand":3.00,"Product2":{"ProductCode":"WIFI-AP-02","Id":"01tdL00000cjw5CQAQ","Name":"Wi-Fi Access Point"},"Location":{"Id":"131dL000000OPBlQAO","Name":"Tech Van A"}}|0x27b3af
+06:59:35.2 (546879263)|STATEMENT_EXECUTE|[130]
+06:59:35.2 (546881753)|STATEMENT_EXECUTE|[131]
+06:59:35.2 (546905613)|HEAP_ALLOCATE|[132]|Bytes:79
+06:59:35.2 (546933344)|HEAP_ALLOCATE|[135]|Bytes:4
+06:59:35.2 (546944643)|HEAP_ALLOCATE|[132]|Bytes:10
+06:59:35.2 (546949174)|HEAP_ALLOCATE|[132]|Bytes:89
+06:59:35.2 (546959664)|USER_DEBUG|[131]|DEBUG|ProductItem => Product=Wi-Fi Access Point, Code=WIFI-AP-02, Location=Tech Van A, Qty=3.00
+06:59:35.2 (546970804)|METHOD_ENTRY|[125]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (546985775)|METHOD_EXIT|[125]||Database.QueryLocatorIterator.hasNext()
+06:59:35.2 (546994795)|VARIABLE_ASSIGNMENT|[125]|pi|null|
+06:59:35.841 (841966301)|CUMULATIVE_LIMIT_USAGE
+06:59:35.841 (841966301)|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 6 out of 100
+  Number of query rows: 5 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 3 out of 150
+  Number of Publish Immediate DML: 0 out of 150
+  Number of DML rows: 5 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+06:59:35.841 (841966301)|CUMULATIVE_LIMIT_USAGE_END
+
+06:59:35.2 (842139645)|CODE_UNIT_FINISHED|execute_anonymous_apex
+06:59:35.2 (842174476)|EXECUTION_FINISHED

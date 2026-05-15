@@ -1,0 +1,478 @@
+<template>
+    <div class="cpe-container">
+        <!-- Persistent Header -->
+        <div class="customer-header">
+            <div class="customer-info" style="display: flex; align-items: center; gap: 12px;">
+                <div class="avatar-circle">
+                    <lightning-icon icon-name="standard:user" size="x-small" class="avatar-icon"></lightning-icon>
+                </div>
+                <div class="header-text">
+                    <span class="customer-name">John Doe</span>
+                    <span class="customer-subtitle">{serviceAppointmentNumber}</span>
+                </div>
+            </div>
+            <template if:false={isChatOpen}>
+                <button class="cart-btn" onclick={toggleCart} title="Draft Order Cart">
+                    <lightning-icon icon-name="utility:cart" size="small"></lightning-icon>
+                    <template if:true={hasDraftChanges}>
+                        <span class="cart-badge">{draftItemCount}</span>
+                    </template>
+                </button>
+            </template>
+        </div>
+
+        <template if:false={isChatOpen}>
+            <!-- Top Half: CPE Menu -->
+            <template if:false={isNewCustomer}>
+                <div class="cpe-menu">
+                    <h2 class="section-title">CPE Menu</h2>
+                
+                <!-- TV+ Receiver Card (Compact Inline) -->
+                <div class="equipment-card card-tv">
+                    <div class="card-row">
+                        <div class="icon-title">
+                            <div class="icon-circle icon-circle-tv">
+                                <lightning-icon icon-name="utility:desktop" size="xx-small" class="icon-tv"></lightning-icon>
+                            </div>
+                            <span class="card-title">TV+ Receiver</span>
+                        </div>
+                        <div class="card-stats-inline">
+                            <span class="stat-pill">Current: <strong>{tvCurrent}</strong></span>
+                            <span class="stat-pill">Available: <strong>{tvAvailable}</strong></span>
+                            <span class="stat-pill">Max: <strong>{tvMax}</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modem Card -->
+                <div class="equipment-card card-modem">
+                    <div class="card-row">
+                        <div class="icon-title">
+                            <div class="icon-circle icon-circle-modem">
+                                <lightning-icon icon-name="utility:wifi" size="xx-small" class="icon-modem"></lightning-icon>
+                            </div>
+                            <span class="card-title">Modem</span>
+                        </div>
+                        <span class="stat-pill">Type: <strong class="highlight">{modemCurrent}</strong></span>
+                    </div>
+                    <div class="modem-options-row">
+                        <span class="options-label">Options</span>
+                        <div class="chip-group">
+                            <template for:each={modemAvailable} for:item="opt">
+                                <span key={opt} class="chip readonly">{opt}</span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wi-Fi AP Card (Compact Inline) -->
+                <div class="equipment-card card-wifi">
+                    <div class="card-row">
+                        <div class="icon-title">
+                            <div class="icon-circle icon-circle-wifi">
+                                <lightning-icon icon-name="utility:router" size="xx-small" class="icon-wifi"></lightning-icon>
+                            </div>
+                            <span class="card-title">Wi-Fi Access Points</span>
+                        </div>
+                        <div class="card-stats-inline">
+                            <span class="stat-pill">Current: <strong>{wifiCurrent}</strong></span>
+                            <span class="stat-pill">Available: <strong>{wifiAvailable}</strong></span>
+                            <span class="stat-pill">Max: <strong>{wifiMax}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+        <template if:true={isNewCustomer}>
+            <div class="cpe-menu new-customer-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 2rem;">
+                <div class="new-install-icon-wrap">
+                    <lightning-icon icon-name="standard:user" size="large" class="avatar-icon"></lightning-icon>
+                </div>
+                <h2 class="section-title" style="margin-bottom: 0.5rem;">New Installation</h2>
+                <div class="info-banner" style="color: #666; font-size: 0.9rem;">
+                    <span>No pre-existing equipment installed. Use the assistant below to configure the new devices.</span>
+                </div>
+            </div>
+        </template>
+
+        <!-- Floating Chat Button (Chat icon, not bot) -->
+        <button class="fab-chat" onclick={toggleChat}>
+            <lightning-icon icon-name="utility:chat" size="medium"></lightning-icon>
+        </button>
+    </template>
+
+        <!-- Bottom Half: AI Assistant -->
+        <template if:true={isChatOpen}>
+            <div class="ai-assistant">
+                <!-- Minimal Assistant Header -->
+                <div class="assistant-header">
+                    <div class="assistant-header-left">
+                        <div class="assistant-avatar">
+                            <lightning-icon icon-name="utility:chat" size="xx-small"></lightning-icon>
+                        </div>
+                        <div class="assistant-header-text">
+                            <h2 class="section-title">CPE Assistant</h2>
+                        </div>
+                    </div>
+                    <button class="icon-btn close-chat-btn" onclick={toggleChat}>
+                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                    </button>
+                </div>
+
+            <!-- Chat History -->
+            <div class="chat-history" lwc:ref="chatContainer">
+                <template for:each={messages} for:item="msg">
+                    <div key={msg.id} class={msg.wrapperClass}>
+                        <!-- AI Avatar -->
+                        <template if:true={msg.isAi}>
+                            <div class="bot-avatar-small">
+                                <lightning-icon icon-name="utility:einstein" size="xx-small" class="bot-icon"></lightning-icon>
+                            </div>
+                        </template>
+                        <!-- Technician Avatar -->
+                        <template if:false={msg.isAi}>
+                            <div class="user-avatar-small">
+                                <lightning-icon icon-name="utility:user" size="xx-small" class="user-icon"></lightning-icon>
+                            </div>
+                        </template>
+                        
+                        <div class={msg.bubbleClass}>
+                            <!-- Normal Text -->
+                            <template if:true={msg.text}>
+                                <div class="msg-text">{msg.text}</div>
+                            </template>
+
+                            <!-- Setup Intro Card -->
+                            <template if:true={msg.isSetupIntro}>
+                                <div class="setup-intro-card">
+                                    <div class="setup-intro-items">
+                                        <template for:each={msg.setupItems} for:item="item">
+                                            <div key={item.label} class="setup-intro-item">
+                                                <span class="setup-dot"></span>
+                                                <span class="setup-item-text">{item.label}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="setup-intro-cta">{msg.ctaText}</div>
+                                </div>
+                            </template>
+
+                            <!-- Device Update Card -->
+                            <template if:true={msg.isDeviceUpdate}>
+                                <div class="device-update-card">
+                                    <div class="units-row">
+                                        <span class="old-units">{msg.oldUnits}</span>
+                                        <lightning-icon icon-name="utility:right" size="xx-small" class="arrow-icon"></lightning-icon>
+                                        <span class="new-units">{msg.newUnits}</span>
+                                        <span class="units-label">units</span>
+                                    </div>
+                                    <div class="availability-text">
+                                        {msg.availableUnits} still available after this change
+                                    </div>
+                                    <hr class="divider" />
+                                    <div class="charge-row">
+                                        <span class="charge-label">Charge impact:</span>
+                                        <span class="charge-value">{msg.chargeImpact}</span>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Modem Update Card -->
+                            <template if:true={msg.isModemUpdate}>
+                                <div class="device-update-card">
+                                    <div class="units-row">
+                                        <span class="old-units">{msg.oldModem}</span>
+                                        <lightning-icon icon-name="utility:right" size="xx-small" class="arrow-icon"></lightning-icon>
+                                        <span class="new-units">{msg.newModem}</span>
+                                    </div>
+                                    <hr class="divider" />
+                                    <div class="charge-row">
+                                        <span class="charge-label">Charge impact:</span>
+                                        <span class="charge-value">{msg.chargeImpact}</span>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- ═══════════════════════════════════════════════════════════ -->
+                            <!-- WAY 2: Combined Update Card (New)                          -->
+                            <!-- All changes from a single prompt shown in one bubble.      -->
+                            <!-- ═══════════════════════════════════════════════════════════ -->
+                            <template if:true={msg.isCombinedUpdate}>
+                                <div class="combined-update-card">
+                                    <template for:each={msg.combinedItems} for:item="item">
+                                        <div key={item.label} class="combined-item">
+                                            <!-- Device change row (TV / Wi-Fi) -->
+                                            <template if:true={item.isDevice}>
+                                                <div class="combined-item-header">
+                                                    <span class="combined-item-label">{item.label}</span>
+                                                </div>
+                                                <div class="units-row">
+                                                    <span class="old-units">{item.oldUnits}</span>
+                                                    <lightning-icon icon-name="utility:right" size="xx-small" class="arrow-icon"></lightning-icon>
+                                                    <span class="new-units">{item.newUnits}</span>
+                                                    <span class="units-label">units</span>
+                                                </div>
+                                                <div class="availability-text">
+                                                    {item.availableUnits} still available after this change
+                                                </div>
+                                                <div class="charge-row">
+                                                    <span class="charge-label">Charge impact:</span>
+                                                    <span class="charge-value">{item.chargeImpact}</span>
+                                                </div>
+                                            </template>
+                                            <!-- Modem change row -->
+                                            <template if:true={item.isModem}>
+                                                <div class="combined-item-header">
+                                                    <span class="combined-item-label">{item.label}</span>
+                                                </div>
+                                                <div class="units-row">
+                                                    <span class="old-units">{item.oldModem}</span>
+                                                    <lightning-icon icon-name="utility:right" size="xx-small" class="arrow-icon"></lightning-icon>
+                                                    <span class="new-units">{item.newModem}</span>
+                                                </div>
+                                                <div class="charge-row">
+                                                    <span class="charge-label">Charge impact:</span>
+                                                    <span class="charge-value">{item.chargeImpact}</span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <!-- ═══════════════════════════════════════════════════════════ -->
+
+                            <!-- Scanner UI Simulation -->
+                            <template if:true={msg.isScanner}>
+                                <div class="scanner-ui">
+                                    <div class="scanner-title">Scanning devices...</div>
+                                    <template for:each={msg.scannerItems} for:item="item">
+                                        <div key={item.id} class="scanner-item">
+                                            <span class="serial">S/N: {item.sn}</span>
+                                            <lightning-icon icon-name="utility:check" size="xx-small" class="check-icon"></lightning-icon>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
+                            <!-- Inventory Check Card (My Van) -->
+                            <template if:true={msg.isInventory}>
+                                <div class="inventory-card">
+                                    <div class="inventory-header">
+                                        <lightning-icon icon-name="utility:location" size="xx-small" class="inv-icon"></lightning-icon>
+                                        <span class="inv-title">Van Inventory</span>
+                                    </div>
+                                    <div class="inventory-body">
+                                        <div class="inv-product">{msg.productName}</div>
+                                        <div class="inv-status-row">
+                                            <span class={msg.statusClass}>{msg.statusText}</span>
+                                            <template if:true={msg.hasStock}>
+                                                <span class="inv-qty"><strong>{msg.quantity}</strong> {msg.uom}</span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Nearby Technicians Card (Peer Lookup) -->
+                            <template if:true={msg.isNearby}>
+                                <div class="nearby-card">
+                                    <div class="nearby-header">
+                                        <lightning-icon icon-name="utility:groups" size="xx-small" class="nearby-icon"></lightning-icon>
+                                        <span class="nearby-title">Nearby Stock</span>
+                                    </div>
+                                    <div class="nearby-list">
+                                        <template for:each={msg.peers} for:item="peer">
+                                            <div key={peer.name} class="peer-item">
+                                                <div class="peer-info">
+                                                    <span class="peer-name">{peer.name}</span>
+                                                    <span class="peer-dist">{peer.distance}</span>
+                                                </div>
+                                                <div class="peer-stock">
+                                                    <span class="qty-badge">{peer.quantity}</span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="nearby-footer">
+                                        Ask me to coordinate a transfer if needed.
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Final Summary UI -->
+                            <template if:true={msg.isSummary}>
+                                <div class="summary-ui">
+                                    <div class="summary-section">
+                                        <h4>Pre-existing Work Order</h4>
+                                        <template for:each={msg.preExisting} for:item="item">
+                                            <div key={item.desc} class="summary-row">
+                                                <span>{item.desc}</span>
+                                                <span>${item.price}</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="summary-section">
+                                        <h4>Additional Changes</h4>
+                                        <template if:true={msg.changes.length}>
+                                            <template for:each={msg.changes} for:item="item">
+                                                <div key={item.desc} class="summary-row new-change">
+                                                    <span>{item.desc}</span>
+                                                    <span>{item.priceStr}</span>
+                                                </div>
+                                            </template>
+                                        </template>
+                                        <template if:false={msg.changes.length}>
+                                            <div class="summary-row text-muted">No additional changes</div>
+                                        </template>
+                                    </div>
+                                    <div class="summary-total">
+                                        <span>Total Difference:</span>
+                                        <span class={msg.totalClass}>{msg.totalStr}</span>
+                                    </div>
+                                    <div class="summary-actions">
+                                        <button class="btn-cancel" onclick={handleCancelOrder}>Cancel</button>
+                                        <button class="btn-confirm" onclick={handleConfirmOrder}>Confirm</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Typing Indicator -->
+                <template if:true={isTyping}>
+                    <div class="chat-wrapper ai">
+                        <div class="bot-avatar-small">
+                            <lightning-icon icon-name="utility:einstein" size="xx-small" class="bot-icon"></lightning-icon>
+                        </div>
+                        <div class="chat-bubble ai typing">
+                            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <template for:each={quickActions} for:item="action">
+                    <button key={action} class="chip action-chip" data-val={action} onclick={handleQuickAction}>
+                        <span class="chip-icon-wrap">
+                            <lightning-icon icon-name="utility:sparkle" size="xx-small" class="chip-sparkle"></lightning-icon>
+                        </span>
+                        {action}
+                    </button>
+                </template>
+            </div>
+
+            <!-- Draft Order Bar for Chat View -->
+            <div class="draft-order-bar" onclick={toggleCart}>
+                <div class="sheet-title">
+                    <lightning-icon icon-name="utility:cart" size="small" class="cart-sheet-icon"></lightning-icon>
+                    <span class="sheet-title-text">Draft Order <template if:true={hasDraftChanges}>({draftItemCount})</template></span>
+                </div>
+                <div class="sheet-impact-group">
+                    <template if:true={hasDraftChanges}>
+                        <span class={totalCostImpactClass}>{totalCostImpactStr}</span>
+                    </template>
+                    <template if:false={hasDraftChanges}>
+                        <span class="empty-sheet-text">Empty</span>
+                    </template>
+                    <lightning-icon icon-name="utility:up" size="x-small" class="chevron-icon"></lightning-icon>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <template if:true={isListening}>
+                <div class="voice-listening-bar">
+                    <span class="voice-pulse-dot"></span>
+                    <span class="voice-listening-text">{interimTranscript}</span>
+                </div>
+            </template>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" placeholder="Ask anything about your setup..." value={userInput} onchange={handleInputChange} onkeyup={handleInputKeyup} disabled={isTyping} />
+                <button class={voiceBtnClass} title={voiceBtnTitle} onclick={startVoiceInput} disabled={isTyping}>
+                    <lightning-icon icon-name={voiceBtnIcon} size="small"></lightning-icon>
+                </button>
+                <button class="icon-btn send-btn" onclick={handleSend} disabled={isSendDisabled}>
+                    <lightning-icon icon-name="utility:send" size="small" variant="inverse"></lightning-icon>
+                </button>
+            </div>
+            </div>
+        </template>
+
+        <!-- Cart Bottom Sheet Panel -->
+        <template if:true={isCartOpen}>
+            <div class="cart-overlay" onclick={toggleCart}></div>
+            <div class="cart-panel slide-in">
+                <div class="cart-handle-bar"></div>
+                <div class="cart-header">
+                    <h2>Draft Order</h2>
+                    <button class="icon-btn close-cart" onclick={toggleCart}>
+                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                    </button>
+                </div>
+                <div class="cart-body">
+                    <template if:false={hasDraftChanges}>
+                        <div class="empty-cart-msg">
+                            <div class="empty-cart-icon-wrap">
+                                <lightning-icon icon-name="utility:cart" size="large"></lightning-icon>
+                            </div>
+                            <span>Your draft order is empty.</span>
+                            <span class="empty-cart-hint">Use the Chat Assistant to make changes.</span>
+                        </div>
+                    </template>
+                    <template if:true={isTvInCart}>
+                        <div class="cart-item">
+                            <div class="item-info">
+                                <span class="item-name">TV+ Receiver</span>
+                                <span class="item-price">Impact: {tvCostImpactStr}</span>
+                            </div>
+                            <div class="quantity-controls">
+                                <button class="qty-btn" onclick={decreaseTvDraft}>-</button>
+                                <span class="qty-display">{tvDraft}</span>
+                                <button class="qty-btn" onclick={increaseTvDraft}>+</button>
+                            </div>
+                        </div>
+                    </template>
+                    <template if:true={isWifiInCart}>
+                        <div class="cart-item">
+                            <div class="item-info">
+                                <span class="item-name">Wi-Fi Access Points</span>
+                                <span class="item-price">Impact: {wifiCostImpactStr}</span>
+                            </div>
+                            <div class="quantity-controls">
+                                <button class="qty-btn" onclick={decreaseWifiDraft}>-</button>
+                                <span class="qty-display">{wifiDraft}</span>
+                                <button class="qty-btn" onclick={increaseWifiDraft}>+</button>
+                            </div>
+                        </div>
+                    </template>
+                    <template if:true={isModemInCart}>
+                        <div class="cart-item">
+                            <div class="item-info">
+                                <span class="item-name">Modem</span>
+                                <span class="item-price">Impact: {modemCostImpactStr}</span>
+                            </div>
+                            <div class="options-controls">
+                                <select onchange={handleModemDraftChange} class="modem-select">
+                                    <template for:each={modemDraftOptions} for:item="opt">
+                                        <option key={opt.value} value={opt.value} selected={opt.selected}>{opt.label}</option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <template if:true={hasDraftChanges}>
+                    <div class="cart-footer">
+                        <div class="cart-total">
+                            <span>Total Difference:</span>
+                            <span class={totalCostImpactClass}>{totalCostImpactStr}</span>
+                        </div>
+                        <button class="btn-confirm-cart" onclick={confirmCartOrder}>Confirm Order</button>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>
